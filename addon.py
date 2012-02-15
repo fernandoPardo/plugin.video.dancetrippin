@@ -1,3 +1,9 @@
+'''
+Created on Feb 14, 2012
+
+@author: fpardo
+'''
+
 import urllib2, re, sys, xbmcplugin, xbmcgui
 from xml.sax.saxutils import unescape
 from BeautifulSoup import BeautifulSoup
