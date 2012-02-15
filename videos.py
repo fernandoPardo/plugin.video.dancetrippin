@@ -7,7 +7,7 @@ Created on Feb 14, 2012
 class Video(object):
     
     '''
-    Base Video Interface
+    Base Video 
     '''
     
     __caption = None
@@ -45,3 +45,26 @@ class Video(object):
     
     def fetchStreamPath(self):
         raise NotImplementedError
+
+class _AcudeoVideo(Video):
+    #TODO Implement AcudeoVideo
+    '''
+    Acudeo Video Implementation
+    '''
+
+    def __init__(self):
+        '''
+        Constructor
+        '''
+
+class _VimeoVideo(Video):
+    #TODO Implement VimeoVideo
+    '''
+    Vimeo Video Implementation
+    '''
+
+    def __init__(self):
+        '''
+        Constructor
+        '''
+    
