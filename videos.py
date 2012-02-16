@@ -4,67 +4,73 @@ Created on Feb 14, 2012
 @author: fpardo
 '''
 
+from remoteservices import VimeoClient
+
 class Video(object):
     
-    '''
-    Base Video 
-    '''
+    '''Base Video Class'''    
     
-    __caption = None
-    __thumbnailPath = None
-    __streamPath = None
+    _caption = None
+    _thumbnail = None
+    _path = None
+    '''
+        the url that contains the video & webvideoplayer.
+        since "http://www.dancetrippin.tv/video/dj-set-episode-1-bart-thimbles" is not playable 
+        we have to get the actual playable videoUrl : "http://hwcdn.net/k7w9n4n5/cds/episodes400/1.flv?rs=710"             
+    '''
+    #TODO Come up with a better naming first or solve this in a more elegant way 
+    _snapUrl = None
     
-    def __init__(self):
-        '''
-        Constructor
-        '''
+    def __init__(self,snapUrl):       
+        self._snapUrl = snapUrl    
     
     def getCaption(self):
-        raise NotImplementedError
+        return self._caption
     
-    def getThumbnailPath(self):
+    def getThumbnail(self):
+        return self._thumbnail    
+    
+    def getPath(self):
+        return self._path
+    
+    def getSnapUrl(self):
+        return self._snapUrl        
+    
+    def setCaption(self, caption):
+        self._caption = caption
+    
+    def setThumbnail(self, thumbnail):
+        self._thumbnail = thumbnail
+    
+    def setPath(self, path):
+        self._path = path  
+    
+    def fetchVideoData(self):
         raise NotImplementedError    
-    
-    def getStreamPath(self):
-        raise NotImplementedError
-    
-    def setCaption(self):
-        raise NotImplementedError
-    
-    def setThumbnailPath(self):
-        raise NotImplementedError    
-    
-    def setStreamPath(self):
-        raise NotImplementedError
-    
-    def fetchCaption(self):
-        raise NotImplementedError
-    
-    def fetchThumbnailPath(self):
-        raise NotImplementedError    
-    
-    def fetchStreamPath(self):
-        raise NotImplementedError
 
-class _AcudeoVideo(Video):
+class AcudeoVideo(Video):
     #TODO Implement AcudeoVideo
-    '''
-    Acudeo Video Implementation
-    '''
-
-    def __init__(self):
-        '''
-        Constructor
-        '''
-
-class _VimeoVideo(Video):
-    #TODO Implement VimeoVideo
-    '''
-    Vimeo Video Implementation
-    '''
-
-    def __init__(self):
-        '''
-        Constructor
-        '''
+    '''Acudeo Video Implementation'''
     
+    def fetchVideoData(self):
+        self.setCaption("caption")
+        self.setThumbnail("thumbnail")
+        self.setPath("path")
+
+class VimeoVideo(Video):
+    videoData = None
+    '''Vimeo Video Implementation'''  
+    
+    def __init__(self,snapUrl):        
+        Video.__init__(self, snapUrl)
+
+    #TODO populate videoObjects here and like this ? what about doing it in a lazy manner ?
+            
+    def fetchVideoData(self):        
+        snapUrl = self.getSnapUrl()
+        vimeoClient = VimeoClient()
+        videoId = vimeoClient.getVideoId(snapUrl)
+        videoData = vimeoClient.getVideoData(videoId)        
+        self.setCaption(videoData['caption'])
+        self.setThumbnail(videoData['thumbnail'])
+        self.setPath(videoData['streamUrl'])
