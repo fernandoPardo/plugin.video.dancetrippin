@@ -34,7 +34,7 @@ class VimeoClient():
             requestUrl = "http://vimeo.com/moogaloop/load/clip:%s/local" % (videoId)
             req = urllib2.Request(requestUrl)
             req.add_header('User-Agent', "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-GB; rv:1.9.2.8) Gecko/20100722 Firefox/3.6.8")    
-            print req.get_full_url()
+            print "vimeo api request:" + req.get_full_url()
             con = urllib2.urlopen(req)
             response = con.read()
             video = BeautifulSoup(response)    
