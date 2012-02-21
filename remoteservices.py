@@ -1,7 +1,25 @@
+# -*- coding: utf-8 -*-
 '''
 Created on Feb 14, 2012
 
-@author: fpardo
+@author: Fernando Pardo
+
+Copyright (C) 2012 Fernando Pardo
+ 
+This file is part of XBMC DanceTrippin.tv Plugin.
+
+XBMC DanceTrippin.tv Plugin is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+XBMC DanceTrippin.tv Plugin is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with XBMC DanceTrippin.tv Plugin.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 import urllib2, re
@@ -41,16 +59,9 @@ class VimeoClient():
             req = urllib2.Request(videoUrl)
             req.add_header('User-Agent', "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-GB; rv:1.9.2.8) Gecko/20100722 Firefox/3.6.8")
             con = urllib2.urlopen(req)
-            link = con.read()
-            con.close()    
-            #TODO Come up with a better regex. This actually returns all vimeovideos (also next playlist items). Match should hold only one id            
+            html = BeautifulSoup(con.read())
+            con.close()            
+            embeddedVideo = html.find(name="div", attrs={"class" : re.compile('emvideo-vimeo')})                        
             expression = 'http://www.vimeo.com/moogaloop.swf\?clip_id=(.+?)&'
-            match = re.compile(expression).findall(link)    
-            return match[0] 
-        
-class AcudeoClient():
-    
-    '''Acudeo Api Client Implementation'''                    
-    #TODO Implement this
-        
-    
+            match = re.compile(expression).findall(embeddedVideo.object["data"])    
+            return match[0]
