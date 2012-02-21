@@ -1,76 +1,104 @@
 '''
 Created on Feb 14, 2012
 
-@author: fpardo
+@author: Fernando Pardo
+
+Copyright (C) 2012 Fernando Pardo
+ 
+This file is part of XBMC DanceTrippin.tv Plugin.
+
+XBMC DanceTrippin.tv Plugin is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+XBMC DanceTrippin.tv Plugin is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with XBMC DanceTrippin.tv Plugin.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from remoteservices import VimeoClient
+from BeautifulSoup import BeautifulSoup
+import urllib2 ,re
 
-class Video(object):
-    
+class Video(object):    
     '''Base Video Class'''    
     
-    _caption = None
-    _thumbnail = None
-    _path = None
-    '''
-        the url that contains the video & webvideoplayer.
-        since "http://www.dancetrippin.tv/video/dj-set-episode-1-bart-thimbles" is not playable 
-        we have to get the actual playable videoUrl : "http://hwcdn.net/k7w9n4n5/cds/episodes400/1.flv?rs=710"             
-    '''
-    #TODO Come up with a better naming first or solve this in a more elegant way 
-    _snapUrl = None
+    _title = ""
+    _thumbnail = ""    
+    _url = ""
+    _streamUrl = ""
+    _genres = []    
     
-    def __init__(self,snapUrl):       
-        self._snapUrl = snapUrl    
+    def __init__(self,url):       
+        self._url = url
+        self.fetchVideoData()    
     
-    def getCaption(self):
-        return self._caption
+    def getTitle(self):
+        return self._title
     
     def getThumbnail(self):
         return self._thumbnail    
     
-    def getPath(self):
-        return self._path
+    def getUrl(self):
+        return self._url
     
-    def getSnapUrl(self):
-        return self._snapUrl        
+    def getStreamUrl(self):
+        return self._streamUrl    
     
-    def setCaption(self, caption):
-        self._caption = caption
-    
-    def setThumbnail(self, thumbnail):
-        self._thumbnail = thumbnail
-    
-    def setPath(self, path):
-        self._path = path  
+    def getGenres(self):
+        return self._genres      
     
     def fetchVideoData(self):
         raise NotImplementedError    
 
-class AcudeoVideo(Video):
-    #TODO Implement AcudeoVideo
+class AcudeoVideo(Video):    
     '''Acudeo Video Implementation'''
     
+    def __init__(self,url):        
+        Video.__init__(self, url)        
+    
     def fetchVideoData(self):
-        self.setCaption("caption")
-        self.setThumbnail("thumbnail")
-        self.setPath("path")
+        url = self.getUrl()
+        req = urllib2.Request(url)
+        req.add_header('User-Agent', "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-GB; rv:1.9.2.8) Gecko/20100722 Firefox/3.6.8")            
+        con = urllib2.urlopen(req)        
+        html = BeautifulSoup(con.read())
+        
+        title = html.find("title").string.split("|")[0]                        
+        thumbnail = "http://www.dancetrippin.tv/sites/all/themes/DanceTrippin/logo.png"
+        
+        #Getting streamUrl from embedded javascript code
+        media = html.find(id="media")
+        javascriptCode = "".join(media.script.string.split())        
+        expression = 'playlist:\["(.+?)"\]'        
+        path = re.compile(expression).findall(javascriptCode)       
+        self._title = title                
+        self._thumbnail = thumbnail
+        self._streamUrl = path[0]
 
-class VimeoVideo(Video):
-    videoData = None
+class VimeoVideo(Video):    
     '''Vimeo Video Implementation'''  
     
-    def __init__(self,snapUrl):        
-        Video.__init__(self, snapUrl)
-
-    #TODO populate videoObjects here and like this ? what about doing it in a lazy manner ?
+    def __init__(self,url):        
+        Video.__init__(self, url)    
             
     def fetchVideoData(self):        
-        snapUrl = self.getSnapUrl()
+        url = self.getUrl()
+        
+        req = urllib2.Request(url)
+        req.add_header('User-Agent', "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-GB; rv:1.9.2.8) Gecko/20100722 Firefox/3.6.8")            
+        con = urllib2.urlopen(req)        
+        html = BeautifulSoup(con.read())        
+        title = html.find("title").string.split("|")[0]                      
+        
         vimeoClient = VimeoClient()
-        videoId = vimeoClient.getVideoId(snapUrl)
+        videoId = vimeoClient.getVideoId(url)
         videoData = vimeoClient.getVideoData(videoId)        
-        self.setCaption(videoData['caption'])
-        self.setThumbnail(videoData['thumbnail'])
-        self.setPath(videoData['streamUrl'])
+        self._title = title
+        self._thumbnail = videoData['thumbnail']
+        self._streamUrl = videoData['streamUrl']
